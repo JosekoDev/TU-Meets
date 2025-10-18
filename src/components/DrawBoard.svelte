@@ -57,13 +57,19 @@
     const rect = svg.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const line = {
-      points: [{ x, y }],
-      color: tool === 'eraser' ? '#121212' : color,
-      width: strokeWidth,
-      tool,
-    };
-    lines = [...lines, line];
+    if (tool === 'eraser') {
+      // erase at the starting point
+      const radius = Math.max(8, strokeWidth * 1.5);
+      eraseAt(x, y, radius);
+    } else {
+      const line = {
+        points: [{ x, y }],
+        color,
+        width: strokeWidth,
+        tool,
+      };
+      lines = [...lines, line];
+    }
   }
 
   function pointerMove(e) {
@@ -73,6 +79,11 @@
     const rect = svg.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    if (tool === 'eraser') {
+      const radius = Math.max(8, strokeWidth * 1.5);
+      eraseAt(x, y, radius);
+      return;
+    }
     const last = lines[lines.length - 1];
     if (!last) return;
     last.points = [...last.points, { x, y }];
@@ -91,6 +102,33 @@
 
   function clearBoard() {
     lines = [];
+  }
+
+  // Eraser: remove points/segments from existing lines within radius.
+  function eraseAt(x, y, radius) {
+    if (!lines || lines.length === 0) return;
+    const out = [];
+    for (const line of lines) {
+      const segments = [];
+      let curr = null;
+      for (const p of line.points) {
+        const dx = p.x - x;
+        const dy = p.y - y;
+        const d = Math.hypot(dx, dy);
+        if (d > radius) {
+          if (!curr) curr = { points: [], color: line.color, width: line.width, tool: line.tool };
+          curr.points.push(p);
+        } else {
+          if (curr && curr.points.length >= 2) {
+            segments.push(curr);
+          }
+          curr = null;
+        }
+      }
+      if (curr && curr.points.length >= 2) segments.push(curr);
+      for (const s of segments) out.push(s);
+    }
+    lines = out;
   }
 </script>
 
@@ -208,27 +246,6 @@
 .info-panel .tabs { display:flex; gap:6px; margin-bottom:8px }
 .info-panel .tabs button { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: white; padding:6px; border-radius:6px }
 .info-panel .tabs button.active { background: rgba(255,255,255,0.08) }
-
-.sticky {
-  position: absolute;
-  background: #fffb91;
-  color: #111;
-  padding: 8px;
-  min-width: 120px;
-  border-radius: 6px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-  touch-action: none;
-  user-select: none;
-}
-.sticky-layer { position: absolute; inset: 0; }
-.check-item { display:flex; align-items:center; gap:8px; padding:4px 0 }
-.check-item .done { text-decoration: line-through; opacity: 0.7 }
-.info-panel input[type="text"], .info-panel input[type="color"], .info-panel input[type="range"], .info-panel textarea { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04); color: white; padding:6px; border-radius:6px }
-.info-panel .checklist { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
-.info-panel .timer { margin-bottom:8px; }
-.info-panel .time-display { font-family: monospace; font-size: 1.1rem; margin:6px 0; }
-.info-panel textarea { width: 100%; border-radius:6px; background: rgba(255,255,255,0.03); color: white; border: none; padding:6px }
-
 .panel-full { position:absolute; inset:0; padding:56px 18px 18px; box-sizing:border-box; }
 
 .panel-back {
@@ -277,5 +294,4 @@
   margin-left: 6px;
 }
 .draw-canvas { cursor: crosshair; touch-action: none; }
-.draw-canvas[disabled] { cursor: default; }
 </style>
