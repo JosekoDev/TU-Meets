@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   export let items = [];
+  export let onReset = undefined;
   const dispatch = createEventDispatcher();
   let newText = '';
 
@@ -23,6 +24,11 @@
     dispatch('dragstart', { id: it.id, event: e });
   }
 
+  function clearStickies() {
+    items = [];
+    dispatch('update', { items });
+  }
+
 </script>
 
 <div class="stickies-root">
@@ -39,6 +45,12 @@
         </div>
       </div>
     {/each}
+  </div>
+  <div class="draw-actions">
+    <button on:click={clearStickies}>Clear</button>
+    {#if onReset}
+      <button on:click={onReset} style="margin-left:8px">Reset layout</button>
+    {/if}
   </div>
 </div>
 
