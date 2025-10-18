@@ -12,7 +12,6 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint ."
-
 	},
 	"files": [
 		"dist",
@@ -61,5 +60,9 @@
 	},
 	"keywords": [
 		"svelte"
-	]
+	],
+	"dependencies": {
+		"bcryptjs": "^3.0.2",
+		"zod": "^4.1.12"
+	}
 }
