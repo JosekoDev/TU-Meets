@@ -1,18 +1,16 @@
-// vite.config.js
+import tailwindcss from '@tailwindcss/vite';
+import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
-import tailwindcss from '@tailwindcss/vite'; // Assuming you use Tailwind
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 export default defineConfig({
-    // ✅ REMOVED sveltekit() and kept the correct svelte() plugin
-    plugins: [svelte(), tailwindcss()], 
-    server: {
-        proxy:{
-            '/api': {
-                // ✅ CHANGED from https to http
-                target: 'http://localhost:3000', 
-                changeOrigin: true,
-            }
-        }
-    }
+	plugins: [tailwindcss(), sveltekit(), svelte()],
+	server: {
+		proxy:{
+			'/api': {
+				target: 'https://localhost:3000',
+				changeOrigin: true,
+			}
+		}
+	}
 });
