@@ -45,13 +45,7 @@
         </div>
       </div>
     {/each}
-  </div>
-  <div class="draw-actions">
-    <button on:click={clearStickies}>Clear</button>
-    {#if onReset}
-      <button on:click={onReset} style="margin-left:8px">Reset layout</button>
-    {/if}
-  </div>
+</div>
 </div>
 
 <style>

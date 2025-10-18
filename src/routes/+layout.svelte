@@ -1,6 +1,7 @@
-<script lang="ts">
-    import '../global.css';
-    export let data: { userId: string | null };
+<script>
+	import '../global.css';
+
+	let { children } = $props();
 </script>
 
 <nav style="display:flex; gap:1rem; padding:.75rem; border-bottom:1px solid #eee">
