@@ -32,17 +32,6 @@
 </div>
 
 <style>
-<<<<<<< HEAD
-  .chat-root { display:flex; flex-direction:column; height:100%; }
-  .msg-list { flex:1; overflow:auto; padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem; }
-  .msg { max-width:80%; padding:0.4rem 0.6rem; border-radius:8px; }
-  .msg.me { margin-left:auto; background:#0b84ff; color:white; }
-  .msg.them { margin-right:auto; background:#222; color:#eee; }
-  .meta { font-size:0.7rem; opacity:0.8; margin-bottom:0.2rem; }
-  .composer { display:flex; gap:0.5rem; padding:0.5rem; border-top:1px solid rgba(255,255,255,0.03); }
-  input { flex:1; padding:0.5rem; border-radius:6px; background:#111; color:#fff; border:1px solid rgba(255,255,255,0.04); }
-  button { padding:0.4rem 0.8rem; border-radius:6px; background:#0b84ff; color:white; border:none; }
-=======
 .chat-root {
   display: flex;
   flex-direction: column;
@@ -104,5 +93,4 @@
   font-style: normal;
 }
 .chat-input button { padding: 0.55rem 0.9rem; border-radius: 6px; }
->>>>>>> c4ee25f51d0a7a1f78ac3b90107ed7422ec3d765
 </style>
