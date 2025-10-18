@@ -42,10 +42,50 @@
 .chat-msg {
   margin-bottom: 0.5rem;
 }
-.meta { font-size: 0.85rem; color: rgba(255,255,255,0.7); }
-.time { margin-left: 0.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.45); }
-.text { margin-top: 0.15rem; background: rgba(255,255,255,0.04); padding: 0.45rem 0.6rem; border-radius: 6px; }
-.chat-input { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
-.chat-input input { flex: 1; padding: 0.6rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); background: transparent; color: inherit; }
+.meta { 
+  font-size: 0.85rem; 
+  color: rgba(255,255,255,0.7); 
+}
+
+.time { 
+  margin-left: 0.5rem; 
+  font-size: 0.75rem; 
+  color: rgba(255,255,255,0.45); 
+  font-family: "Geist", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
+.text { 
+  margin-top: 0.15rem; 
+  background: rgba(255,255,255,0.04); 
+  padding: 0.45rem 0.6rem; 
+  border-radius: 6px; 
+  font-family: "Geist", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
+.chat-input { 
+  display: flex; 
+  gap: 0.5rem; 
+  margin-top: 0.5rem; 
+  font-family: "Geist", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
+.chat-input input { 
+  flex: 1; 
+  padding: 0.6rem; 
+  border-radius: 6px; 
+  border: 1px solid rgba(255,255,255,0.06); 
+  background: transparent; 
+  color: inherit; 
+  font-family: "Geist", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
 .chat-input button { padding: 0.55rem 0.9rem; border-radius: 6px; }
 </style>

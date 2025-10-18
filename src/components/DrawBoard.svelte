@@ -208,27 +208,6 @@
 .info-panel .tabs { display:flex; gap:6px; margin-bottom:8px }
 .info-panel .tabs button { background: transparent; border: 1px solid rgba(255,255,255,0.06); color: white; padding:6px; border-radius:6px }
 .info-panel .tabs button.active { background: rgba(255,255,255,0.08) }
-
-.sticky {
-  position: absolute;
-  background: #fffb91;
-  color: #111;
-  padding: 8px;
-  min-width: 120px;
-  border-radius: 6px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-  touch-action: none;
-  user-select: none;
-}
-.sticky-layer { position: absolute; inset: 0; }
-.check-item { display:flex; align-items:center; gap:8px; padding:4px 0 }
-.check-item .done { text-decoration: line-through; opacity: 0.7 }
-.info-panel input[type="text"], .info-panel input[type="color"], .info-panel input[type="range"], .info-panel textarea { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04); color: white; padding:6px; border-radius:6px }
-.info-panel .checklist { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
-.info-panel .timer { margin-bottom:8px; }
-.info-panel .time-display { font-family: monospace; font-size: 1.1rem; margin:6px 0; }
-.info-panel textarea { width: 100%; border-radius:6px; background: rgba(255,255,255,0.03); color: white; border: none; padding:6px }
-
 .panel-full { position:absolute; inset:0; padding:56px 18px 18px; box-sizing:border-box; }
 
 .panel-back {
@@ -277,5 +256,4 @@
   margin-left: 6px;
 }
 .draw-canvas { cursor: crosshair; touch-action: none; }
-.draw-canvas[disabled] { cursor: default; }
 </style>
