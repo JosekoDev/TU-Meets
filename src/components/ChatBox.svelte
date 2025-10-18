@@ -1,29 +1,34 @@
-<script>
-  let messages = [];
-  let input = "";
+<script lang="ts">
+  import { createEventDispatcher } from 'svelte';
+  const dispatch = createEventDispatcher();
 
-  function sendMessage() {
-    if (!input.trim()) return;
-    messages = [...messages, { text: input.trim(), from: "You", time: new Date().toLocaleTimeString() }];
-    input = "";
-    // keep scroll at bottom — I might wire up bind:this later when I need auto-scroll
+  export let messages: { from: string; text: string }[] = [];
+
+  let newMessage = '';
+
+  function submit() {
+    const text = newMessage.trim();
+    if (!text) return;
+    // emit plain string as detail
+    dispatch('send', text);
+    newMessage = '';
   }
 </script>
 
 <div class="chat-root">
-  <div class="chat-messages" role="log" aria-live="polite">
-    {#each messages as msg}
-      <div class="chat-msg">
-        <div class="meta"><strong>{msg.from}</strong> <span class="time">{msg.time}</span></div>
-        <div class="text">{msg.text}</div>
+  <div class="msg-list">
+    {#each messages as m}
+      <div class="msg {m.from === 'you' ? 'me' : 'them'}">
+        <div class="meta">{m.from === 'you' ? 'You' : m.from}</div>
+        <div class="text">{m.text}</div>
       </div>
     {/each}
   </div>
 
-  <div class="chat-input">
-    <input bind:value={input} placeholder="Type a message..." on:keydown={(e) => e.key === 'Enter' && sendMessage()} />
-    <button on:click={sendMessage}>Send</button>
-  </div>
+  <form on:submit|preventDefault={submit} class="composer">
+    <input bind:value={newMessage} placeholder="Type a message..." />
+    <button type="submit">Send</button>
+  </form>
 </div>
 
 <style>

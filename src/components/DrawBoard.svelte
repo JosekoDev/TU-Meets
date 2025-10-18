@@ -57,13 +57,19 @@
     const rect = svg.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const line = {
-      points: [{ x, y }],
-      color: tool === 'eraser' ? '#121212' : color,
-      width: strokeWidth,
-      tool,
-    };
-    lines = [...lines, line];
+    if (tool === 'eraser') {
+      // erase at the starting point
+      const radius = Math.max(8, strokeWidth * 1.5);
+      eraseAt(x, y, radius);
+    } else {
+      const line = {
+        points: [{ x, y }],
+        color,
+        width: strokeWidth,
+        tool,
+      };
+      lines = [...lines, line];
+    }
   }
 
   function pointerMove(e) {
@@ -73,6 +79,11 @@
     const rect = svg.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    if (tool === 'eraser') {
+      const radius = Math.max(8, strokeWidth * 1.5);
+      eraseAt(x, y, radius);
+      return;
+    }
     const last = lines[lines.length - 1];
     if (!last) return;
     last.points = [...last.points, { x, y }];
@@ -91,6 +102,33 @@
 
   function clearBoard() {
     lines = [];
+  }
+
+  // Eraser: remove points/segments from existing lines within radius.
+  function eraseAt(x, y, radius) {
+    if (!lines || lines.length === 0) return;
+    const out = [];
+    for (const line of lines) {
+      const segments = [];
+      let curr = null;
+      for (const p of line.points) {
+        const dx = p.x - x;
+        const dy = p.y - y;
+        const d = Math.hypot(dx, dy);
+        if (d > radius) {
+          if (!curr) curr = { points: [], color: line.color, width: line.width, tool: line.tool };
+          curr.points.push(p);
+        } else {
+          if (curr && curr.points.length >= 2) {
+            segments.push(curr);
+          }
+          curr = null;
+        }
+      }
+      if (curr && curr.points.length >= 2) segments.push(curr);
+      for (const s of segments) out.push(s);
+    }
+    lines = out;
   }
 </script>
 
