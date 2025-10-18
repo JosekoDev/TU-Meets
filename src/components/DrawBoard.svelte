@@ -164,9 +164,7 @@
       else if (activeTab === 'timer') timer = 0;
       else if (activeTab === 'stickies') stickies = [];
     }}>Clear</button>
-    {#if onReset}
-      <button on:click={onReset} style="margin-left:8px">Reset layout</button>
-    {/if}
+    <!-- Reset layout removed here; divider click handles reset -->
   </div>
 </div>
 

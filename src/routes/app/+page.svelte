@@ -61,7 +61,7 @@
     style="--draw-h: {rightSplit}%; --chat-h: {100 - rightSplit}%"
   >
     <div class="draw-area pane-half">
-      <DrawBoard onReset={() => { rightSplit = 50 }} />
+      <DrawBoard />
     </div>
     <div
       class="divider"
@@ -69,6 +69,7 @@
       aria-orientation="horizontal"
       aria-label="Resize draw and chat panes"
       on:pointerdown={startDrag}
+      on:dblclick={() => { if (!dragging) rightSplit = 50 }}
     >
       <div class="handle"></div>
     </div>
