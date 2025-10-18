@@ -17,7 +17,10 @@
 
 body {
     margin: 0;
-    font-family: system-ui, sans-serif;
+    font-family: "Geist", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 200;
+    font-style: normal;
 }
 
 h1, h2, h3, h4, h5, h6 {
