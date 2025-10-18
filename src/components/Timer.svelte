@@ -20,11 +20,6 @@
     seconds = 0; dispatch('tick', { seconds });
   }
 
-  // expose method for parent via bind:this
-  export function resetTimer() {
-    reset();
-  }
-
   onDestroy(() => { if (intervalId) clearInterval(intervalId) });
 </script>
 

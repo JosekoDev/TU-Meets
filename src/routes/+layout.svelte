@@ -1,7 +1,7 @@
 <script>
 	import '../global.css';
 
-	let { children } = $props();
+	export let data;
 </script>
 
 <nav style="display:flex; gap:1rem; padding:.75rem; border-bottom:1px solid #eee">
