@@ -95,26 +95,32 @@
 </script>
 
 <div class="draw-wrap" on:pointermove={onStickyPointerMove} on:pointerup={onStickyPointerUp} on:pointercancel={onStickyPointerUp}>
-  <div class="info-panel">
-    <div class="tabs">
-      <button class:active={activeTab==='draw'} on:click={() => (activeTab='draw')} title="Draw">🖊️</button>
-      <button class:active={activeTab==='checklist'} on:click={() => (activeTab='checklist')} title="Checklist">✅</button>
-      <button class:active={activeTab==='timer'} on:click={() => (activeTab='timer')} title="Timer">⏱️</button>
-      <button class:active={activeTab==='stickies'} on:click={() => (activeTab='stickies')} title="Stickies">📌</button>
+  {#if activeTab === 'draw'}
+    <div class="info-panel">
+      <div class="tabs">
+        <button class:active={activeTab==='draw'} on:click={() => (activeTab='draw')} title="Draw">🖊️</button>
+        <button class:active={activeTab==='checklist'} on:click={() => (activeTab='checklist')} title="Checklist">✅</button>
+        <button class:active={activeTab==='timer'} on:click={() => (activeTab='timer')} title="Timer">⏱️</button>
+        <button class:active={activeTab==='stickies'} on:click={() => (activeTab='stickies')} title="Stickies">📌</button>
+      </div>
     </div>
-    <!-- tabs only; content rendered full-size below -->
-  </div>
+  {:else}
+    <!-- small back button shown when a full panel is active to return to Draw/tools -->
+    <button class="panel-back" on:click={() => (activeTab='draw')} title="Return to tools">← Tools</button>
+  {/if}
 
-  <div class="pen-toggle bottom">
-    <button class:active={penOn} on:click={() => (penOn = !penOn)} aria-pressed={penOn} title="Toggle pen">
-      {#if penOn}Pen On{:else}Pen Off{/if}
-    </button>
-    <button class:active={tool === 'pen'} on:click={() => (tool = 'pen')} title="Pen tool">✎</button>
-    <button class:active={tool === 'eraser'} on:click={() => (tool = 'eraser')} title="Eraser">🩹</button>
-    <input type="color" bind:value={color} title="Pick color" />
-    <label style="margin-left:6px;color:rgba(255,255,255,0.7)">W</label>
-    <input type="range" min="1" max="20" bind:value={strokeWidth} style="width:90px" />
-  </div>
+  {#if activeTab === 'draw'}
+    <div class="pen-toggle bottom">
+      <button class:active={penOn} on:click={() => (penOn = !penOn)} aria-pressed={penOn} title="Toggle pen">
+        {#if penOn}Pen On{:else}Pen Off{/if}
+      </button>
+      <button class:active={tool === 'pen'} on:click={() => (tool = 'pen')} title="Pen tool">✎</button>
+      <button class:active={tool === 'eraser'} on:click={() => (tool = 'eraser')} title="Eraser">🩹</button>
+      <input type="color" bind:value={color} title="Pick color" />
+      <label style="margin-left:6px;color:rgba(255,255,255,0.7)">W</label>
+      <input type="range" min="1" max="20" bind:value={strokeWidth} style="width:90px" />
+    </div>
+  {/if}
   {#if activeTab === 'draw'}
     <svg
       class="draw-canvas"
@@ -219,7 +225,20 @@
 .info-panel .time-display { font-family: monospace; font-size: 1.1rem; margin:6px 0; }
 .info-panel textarea { width: 100%; border-radius:6px; background: rgba(255,255,255,0.03); color: white; border: none; padding:6px }
 
-.panel-full { position:absolute; inset:0; padding:18px; box-sizing:border-box; }
+.panel-full { position:absolute; inset:0; padding:56px 18px 18px; box-sizing:border-box; }
+
+.panel-back {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 40;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
 
 .pen-toggle.bottom {
   position: absolute;
