@@ -61,7 +61,7 @@
     style="--draw-h: {rightSplit}%; --chat-h: {100 - rightSplit}%"
   >
     <div class="draw-area pane-half">
-      <DrawBoard />
+      <DrawBoard onReset={() => { rightSplit = 50 }} />
     </div>
     <div
       class="divider"
