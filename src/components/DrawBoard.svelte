@@ -116,8 +116,8 @@
       </button>
       <button class:active={tool === 'pen'} on:click={() => (tool = 'pen')} title="Pen tool">✎</button>
       <button class:active={tool === 'eraser'} on:click={() => (tool = 'eraser')} title="Eraser">🩹</button>
-      <input type="color" bind:value={color} title="Pick color" />
-      <label style="margin-left:6px;color:rgba(255,255,255,0.7)">W</label>
+  <input id="draw-color" type="color" bind:value={color} title="Pick color" />
+  <label for="draw-color" style="margin-left:6px;color:rgba(255,255,255,0.7)">W</label>
       <input type="range" min="1" max="20" bind:value={strokeWidth} style="width:90px" />
     </div>
   {/if}
@@ -135,7 +135,7 @@
     </svg>
   {:else if activeTab === 'checklist'}
     <div class="panel-full">
-      <Checklist {checklist} on:update={(e) => checklist = e.detail.items} />
+      <Checklist items={checklist} on:update={(e) => checklist = e.detail.items} />
     </div>
   {:else if activeTab === 'timer'}
     <div class="panel-full">
@@ -143,7 +143,7 @@
     </div>
   {:else if activeTab === 'stickies'}
     <div class="panel-full">
-      <Stickies {stickies} on:update={(e) => stickies = e.detail.items} on:dragstart={(e) => {
+      <Stickies items={stickies} on:update={(e) => stickies = e.detail.items} on:dragstart={(e) => {
         // parent will handle pointer capture and movement
         const { id, event } = e.detail;
         const it = stickies.find(s => s.id === id);
@@ -157,7 +157,13 @@
     </div>
   {/if}
   <div class="draw-actions">
-    <button on:click={clearBoard}>Clear</button>
+    <button on:click={() => {
+      // clear only the active panel
+      if (activeTab === 'draw') lines = [];
+      else if (activeTab === 'checklist') checklist = [];
+      else if (activeTab === 'timer') timer = 0;
+      else if (activeTab === 'stickies') stickies = [];
+    }}>Clear</button>
     {#if onReset}
       <button on:click={onReset} style="margin-left:8px">Reset layout</button>
     {/if}
