@@ -7,24 +7,26 @@
     let cameraError = false;
 
     // When the component loads, ask for camera permission
-    onMount(async () => {
-        try {
-            yourStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        } catch (err) {
-            console.warn('Could not get user media for preview:', err);
-            cameraError = true;
-        }
+    onMount(() => {
+        (async () => {
+            try {
+                yourStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            } catch (err) {
+                console.warn('Could not get user media for preview:', err);
+                cameraError = true;
+            }
+        })();
 
         // Cleanup when the user navigates away
         return () => {
             yourStream?.getTracks().forEach(track => track.stop());
-        }
+        };
     });
 </script>
 
 <svelte:head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </svelte:head>
 
@@ -39,7 +41,7 @@
         <p class="subtitle">Connect with fellow Owls, face-to-face.</p>
 
         <div class="video-preview">
-            <VideoFeed videoStream={yourStream} label="Camera Preview" />
+            <VideoFeed videoStream={yourStream as any} label="Camera Preview" />
             {#if cameraError}
                 <div class="error-overlay">
                     <p>Camera access denied.</p>
