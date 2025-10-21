@@ -7,43 +7,39 @@
     import io from 'socket.io-client';
     import type { Socket } from 'socket.io-client';
 
-    // --- UI State (from your code) ---
-    let rightSplit = 50; // percent height for draw-area (rest goes to chat)
+    // --- UI State ---
+    let rightSplit = 50;
     let dragging = false;
 
-    // --- Networking & Media State (New) ---
+    // --- Networking & Media State ---
     let yourStream: MediaStream | null = null;
     let partnerStream: MediaStream | null = null;
     let socket: Socket;
     let peerConnection: RTCPeerConnection;
     let status = 'Initializing...';
-
-    // new: chat messages shown in UI
-    let messages: { from: string; text: string }[] = [];
+    let messages: { id: number; from: 'you' | 'them'; text: string }[] = [];
 
     const configuration = {
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     };
 
-    // --- Networking & WebRTC Logic (New) ---
-
+    // --- Networking & WebRTC Logic ---
     onMount(() => {
-        // Initialize local video as soon as the component mounts
         initLocalVideo();
+        socket = io('http://localhost:3000');
 
-        // Connect to the Socket.IO server
-        socket = io();
-
-        socket.on('connect', () => {
-            status = 'Connected';
-        });
+        socket.on('connect', () => (status = 'Connected'));
         socket.on('waiting', () => (status = 'Waiting for a partner...'));
         socket.on('matched', async ({ initiator }: { initiator: boolean }) => {
             status = 'Matched! Connecting...';
+            messages = []; // Clear chat on new match
             await createPeerConnection(initiator);
         });
-        socket.on('partner-left', endChat);
-        socket.on('signal', async (data: { offer?: RTCSessionDescriptionInit; answer?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit }) => {
+        socket.on('partner-left', () => {
+            endChat();
+            status = 'Partner disconnected.';
+        });
+        socket.on('signal', async (data) => {
             if (!peerConnection) return;
             if (data.offer) {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -56,19 +52,21 @@
                 await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
             }
         });
-
-        // receive chat messages from server (forwarded from partner)
-        socket.on('chat-message', (msg: { from: string; text: string }) => {
-            // mark incoming message as from partner
-            messages = [...messages, { from: 'partner', text: msg.text }];
+        socket.on('chat-message', (data: { text: string }) => {
+            messages = [...messages, { id: Date.now(), from: 'them', text: data.text }];
         });
 
         return () => socket.disconnect();
     });
 
+    function handleSend(event: CustomEvent<string>) {
+        const text = event.detail;
+        messages = [...messages, { id: Date.now() + 1, from: 'you', text }];
+        socket.emit('chat-message', { text });
+    }
+
     async function initLocalVideo() {
         try {
-            // Requesting audio as well, which is typical for video chat
             yourStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         } catch (err) {
             status = "Error: Camera/Mic permissions denied.";
@@ -77,26 +75,13 @@
     }
 
     async function createPeerConnection(isInitiator: boolean) {
-        endChat(false); // Clean up any previous connection
+        endChat(false);
         peerConnection = new RTCPeerConnection(configuration);
-
-        // Add your local video stream tracks to the connection
         yourStream?.getTracks().forEach((track) => peerConnection.addTrack(track, yourStream!));
-
-        // When the partner's video stream arrives, display it
-        peerConnection.ontrack = (event) => {
-            console.log('✅ PARTNER STREAM RECEIVED!', event.streams[0]);
-            partnerStream = event.streams[0];
-        };
-
-        // Send network candidates to the other peer via the server
+        peerConnection.ontrack = (event) => (partnerStream = event.streams[0]);
         peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                socket.emit('signal', { candidate: event.candidate });
-            }
+            if (event.candidate) socket.emit('signal', { candidate: event.candidate });
         };
-
-        // If you are the one initiating the call, create and send the offer
         if (isInitiator) {
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
@@ -106,28 +91,15 @@
 
     function endChat(notifyServer = true) {
         if (notifyServer) status = 'Partner disconnected.';
-        if (peerConnection) {
-            peerConnection.close();
-        }
-        partnerStream = null; // Clear the partner's video stream
+        if (peerConnection) peerConnection.close();
+        partnerStream = null;
+        messages = [];
     }
 
     const findPartner = () => socket.emit('find-partner');
-    const nextChat = () => {
-        endChat();
-        socket.emit('next-chat');
-    };
+    const nextChat = () => socket.emit('next-chat');
 
-    // send a chat message to your partner via server
-    function sendChat(text: string) {
-        if (!text.trim()) return;
-        // show locally
-        messages = [...messages, { from: 'you', text }];
-        // forward to server
-        socket.emit('chat-message', { text });
-    }
-
-    // --- UI Dragging Logic (from your code) ---
+    // --- UI Dragging Logic ---
     function startDrag(e: PointerEvent) {
         dragging = true;
         e.preventDefault();
@@ -152,15 +124,15 @@
         <div class="controls-area">
             <p>Status: {status}</p>
             <div class="buttons">
-                <button on:click={findPartner} disabled={status !== 'Connected'}>Find Partner</button>
+                <button on:click={findPartner} disabled={status !== 'Connected' && status !== 'Partner disconnected.'}>Find Partner</button>
                 <button on:click={nextChat} disabled={!status.startsWith('Matched')}>Next Chat</button>
             </div>
         </div>
         <div class="video-top video-block">
-            <VideoPane videoStream={partnerStream as unknown as null | undefined} label="Partner" />
+            <VideoPane videoStream={partnerStream} label="Partner" />
         </div>
         <div class="video-bottom video-block">
-            <VideoPane videoStream={yourStream as unknown as null | undefined} label="You" />
+            <VideoPane videoStream={yourStream} label="You" />
         </div>
     </section>
 
@@ -179,20 +151,20 @@
         <div
             class="divider"
             role="separator"
+            aria-orientation="horizontal"
+            aria-label="Resize draw and chat panes"
             on:pointerdown={startDrag}
             on:dblclick={() => { if (!dragging) rightSplit = 50 }}
         >
             <div class="handle"></div>
         </div>
         <div class="chat-area pane-half">
-            <!-- pass messages and handle send events from ChatBox -->
-            <ChatBox {messages} on:send={(e) => sendChat(e.detail)} />
+            <ChatBox {messages} on:send={handleSend} />
         </div>
     </section>
 </main>
 
 <style>
-    /* New styles for the added controls */
     .controls-area {
         padding: 0.5rem 1rem;
         display: flex;
@@ -207,57 +179,87 @@
     button { padding: 0.5rem 1rem; border-radius: 4px; border: none; cursor: pointer; }
     button:disabled { background-color: #555; color: #999; cursor: not-allowed; }
 
-    /* Your existing styles are below */
     .layout-root {
         display: flex;
         height: 100vh;
-        /* ...etc... */
+        width: 100%;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
     }
 
-    /* Ensure left column is a column layout with fixed controls and two video boxes that do not resize */
     .left-pane {
+        flex: 0 0 50%;
         display: flex;
         flex-direction: column;
-        width: 40%; /* adjust as needed */
-        min-width: 280px;
-        max-width: 600px;
-        background: #111;
+        border-right: 1px solid rgba(0,0,0,0.08);
+        min-width: 0;
     }
 
-    /* Controls stay fixed, video blocks share remaining space equally and do not cause their contents to overflow */
+    .right-pane {
+        flex: 1 1 50%;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
     .video-block {
-        flex: 1 1 0;
-        min-height: 0; /* allow flex children to shrink properly inside column */
-        overflow: hidden;
-        position: relative;
-        background: #000;
-        border-top: 1px solid rgba(255,255,255,0.04);
+        flex: 1 1 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        box-sizing: border-box;
     }
 
-    /* Make sure any video element inside fills the box and preserves aspect ratio */
-    /* Using :global to target <video> rendered inside the VideoPane component */
-    .video-block :global(video),
-    .video-block :global(video[playsinline]) {
-        position: absolute;
-        inset: 0;
+    .video-block > :global(div),
+    .video-block > :global(video) {
         width: 100%;
         height: 100%;
-        object-fit: contain; /* 'contain' fits the whole video inside the box without cropping; use 'cover' to fill/crop */
+        max-width: 720px;
+        max-height: 48vh;
+        border-radius: 8px;
+        overflow: hidden;
         background: #000;
     }
 
-    /* Prevent accidental browser resizing UI (if any) and ensure layout doesn't let video boxes be resized by content */
-    .video-block,
-    .video-block * {
-        resize: none;
+    .pane-half {
+        min-height: 0;
         box-sizing: border-box;
-        user-select: none;
+        overflow: hidden;
+        display: flex; /* Helps child components fill height */
+        flex-direction: column; /* Helps child components fill height */
     }
 
-    /* small responsive tweak so right pane gets remaining space */
-    .right-pane {
-        flex: 1 1 auto;
+    .divider {
+        height: 8px;
+        width: 100%;
+        background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+        box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+        cursor: row-resize;
         display: flex;
-        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .divider .handle {
+        width: 48px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    }
+    
+    .chat-area { flex-grow: 1; }
+    .draw-area { flex-grow: 1; }
+
+    /* ▼▼▼ CORRECTED LINES ▼▼▼ */
+    .right-pane[data-split] > .draw-area { flex-basis: calc(var(--draw-h) - 4px); }
+    .right-pane[data-split] > .chat-area { flex-basis: calc(var(--chat-h) - 4px); }
+    /* ▲▲▲ CORRECTED LINES ▲▲▲ */
+
+    @media (max-width: 900px) {
+        .layout-root { flex-direction: column; }
+        .left-pane, .right-pane { flex: none; width: 100%; height: auto; }
+        .video-block > :global(div), .video-block > :global(video) { max-height: 36vh; }
     }
 </style>
